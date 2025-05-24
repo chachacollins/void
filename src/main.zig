@@ -1,7 +1,8 @@
 const std = @import("std");
 const Blockchain = @import("blockchain.zig").Blockchain;
 const net = @import("net.zig");
-const AsyncQueue = @import("asyncqueue.zig").AsyncQueue;
+const AsyncQueue = @import("ds.zig").AsyncQueue;
+const AsyncArrayList = @import("ds.zig").AsyncArrayList;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -17,7 +18,12 @@ pub fn main() !void {
     //
     // try blockchain.printBlocks();
     // try net.connect(allocator);
-    var queue = AsyncQueue(usize).init(allocator);
-    try queue.enqueue(10);
-    std.debug.print("{d}\n", .{queue.dequeue().?});
+    var async_list = AsyncArrayList(u8).init(allocator);
+    defer async_list.deinit();
+    try async_list.append(10);
+    try async_list.append(10);
+    try async_list.append(10);
+    for(0..async_list.len()) |i| {
+        std.debug.print("{d}\n", .{async_list.get(i)});
+    }
 }
