@@ -1,5 +1,5 @@
 const std = @import("std");
-const Block = @import("block.zig");
+pub const Block = @import("block.zig");
 
 pub const BlockChain = std.ArrayList(Block);
 
