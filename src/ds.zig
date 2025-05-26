@@ -99,5 +99,10 @@ pub fn AsyncArrayList(comptime T: type) type {
         pub fn len(self: Self) usize {
             return self.backing.items.len;
         }
+        pub fn getLast(self: *Self) T {
+            self.mutex.lock();
+            defer self.mutex.unlock();
+            return self.backing.getLast();
+        }
     };
 }

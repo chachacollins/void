@@ -1,7 +1,8 @@
 const std = @import("std");
 pub const Block = @import("block.zig");
+const AsyncArrayList = @import("ds.zig").AsyncArrayList;
 
-pub const BlockChain = std.ArrayList(Block);
+pub const BlockChain = AsyncArrayList(Block);
 
 pub const Blockchain = struct {
     blocks: BlockChain,
@@ -15,12 +16,12 @@ pub const Blockchain = struct {
     }
 
     pub fn addBlock(self: *Blockchain, block_data: u64) !void {
-        const prev_hash = if (self.blocks.items.len > 0) 
+        const prev_hash = if (self.blocks.len() > 0) 
             self.blocks.getLast().hash 
         else 
             null;
 
-        const block_index = self.blocks.items.len;
+        const block_index = self.blocks.len();
         const new_block = try Block.init(block_data, self.allocator, prev_hash, block_index);
 
         if (try self.verifyBlock(new_block)) {
@@ -34,7 +35,7 @@ pub const Blockchain = struct {
 
     fn verifyBlock(self: *Blockchain, new_block: Block) !bool {
         // Always verify genesis block
-        if (self.blocks.items.len == 0) return true;
+        if (self.blocks.len() == 0) return true;
 
         const old_block = self.blocks.getLast();
         if (!std.mem.eql(u8, new_block.prev_hash, old_block.hash)) return false;
@@ -51,7 +52,8 @@ pub const Blockchain = struct {
         const stdout_file = std.io.getStdOut().writer();
         var bw = std.io.bufferedWriter(stdout_file);
         const stdout = bw.writer();
-        for (self.blocks.items) |block| {
+        for (0..self.blocks.len()) |i| {
+            const block = self.blocks.get(i);
             try stdout.print(
                 "Block({d}) =>\n\tData -> {d}\n\tCreated at -> {d}\n\tPrev hash -> {s}\n\tHash -> {s}\n\n", 
                 .{block.index, block.data, block.created_at, block.prev_hash, block.hash}
@@ -61,7 +63,8 @@ pub const Blockchain = struct {
     }
 
     pub fn deinit(self: *Blockchain) void {
-        for (self.blocks.items) |*block| {
+        for (0..self.blocks.len()) |i| {
+            var block = self.blocks.get(i);
             block.deinit();
         }
         self.blocks.deinit();
